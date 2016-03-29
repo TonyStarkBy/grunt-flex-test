@@ -27,7 +27,8 @@
     "test": "grunt test"
   },
   "dependencies":{
-    "js-yaml": "^3.5.3"
+    "js-yaml": "^3.5.3",
+    "async": "^1.5.2"
     },
   "devDependencies": {
     "grunt-text-replace": "^0.4.0",
