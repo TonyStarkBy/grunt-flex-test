@@ -2,7 +2,7 @@
  * grunt-stark-mxmlc
  * https://github.com/TonyStarkBy/grunt-stark-mxmlc
  *
- * Copyright (c) 2016 Tony Stark
+ * Copyright (c) 2016 Tony Stark aka Iron Man
  * Licensed under the MIT license.
  */
 
@@ -10,8 +10,94 @@
 
 var childProcess = require('child_process');
 var async = require('async');
+var crypto = require('crypto');
+var fs = require("fs");
+
 
 module.exports = function(grunt) {
+
+    grunt.registerTask('resourcejson', 'A Grunt task plugin to build resources map', function() {
+        var options = this.options({
+            'hashAlgorithm' : 'md5'
+        });
+        var JSONData = {
+            'prefixes' : options['urlPath'], 'files' : {}
+        };
+
+        if (! grunt.file.exists(options['src']) || ! grunt.file.isDir(options['src'])) {
+            return grunt.log.error("src dir [" + options['src'] + "] is not exists or is not dir!");
+        }
+
+        //var done = this.async();
+
+        // stats && debug
+        var respacksCount = 0, respacksCreated = 0, resourcesCount = 0, resourcesCreated = 0, resourcesIgnored = 0;
+
+        // recurse scan
+        grunt.file.recurse(options['src'], function callback(absPath, rootDir, subDir, fileName) {
+            var md5 = crypto.createHash(options['hashAlgorithm']).update(fs.readFileSync(absPath)).digest('hex');
+
+            // парсим имя и тип ресурса
+            var fileData = fileName.split('.', 2);
+            if (fileData.length != 2) {
+                return grunt.log.error("[" + absPath + "] wrong format!");
+            }
+            var parts = subDir.split('/').map(function(value) {
+                return value.toLowerCase();
+            });
+            parts[parts.length] = fileData[0];
+
+            // добавояем расширение для типов, для которых может быть коллизия имени
+            if (fileData[1] == 'xml' || fileData[1] == 'swf') {
+                parts[parts.length] = fileData[1];
+            }
+
+            // формируем уникальное имя ресурса и имя респака
+            var respackName = parts[0];
+            var resourceId = parts.join('_');
+            var destinationFile = resourceId + "~" + md5 + "." + fileData[1];
+
+            // создаем папку для респака, если нужно
+            var destinationDir = options['dest'] + "/" + respackName;
+            if (typeof JSONData['files'][respackName] == 'undefined') {
+                if (! grunt.file.exists(destinationDir)) { // Можно не создавать, grunt сделает это сам
+                    grunt.file.mkdir(destinationDir, "0777");
+                    respacksCreated++;
+                }
+                JSONData['files'][respackName] = {};
+                respacksCount++;
+            }
+
+            // формируем JSON
+            if (typeof JSONData['files'][respackName][resourceId] == 'undefined') {
+                JSONData['files'][respackName][resourceId] = respackName + '/' + destinationFile;
+            } else {
+                grunt.log.error("Resource " + resourceId + " (respack=" + respackName + ") DUPLICATE!");
+            }
+
+            // копируем файл назначения
+            if (! grunt.file.exists(destinationDir + '/' + destinationFile)) {
+                grunt.file.copy(absPath, destinationDir + '/' + destinationFile);
+                resourcesCreated++;
+            } else {
+                resourcesIgnored++;
+            }
+
+            resourcesCount++;
+        });
+
+        // записываем итоговый JSON
+        grunt.file.write(options['destMetaFile'], JSON.stringify(JSONData));
+
+        // result
+        grunt.log.oklns("Respacks: " + respacksCount + " (created: " + respacksCreated + ")");
+        grunt.log.oklns(
+            "Resources: " + resourcesCount + " (created: " + resourcesCreated + "; Ignored: " + resourcesIgnored + ")"
+        );
+        grunt.log.oklns("Meta file:" + options['destMetaFile']);
+    });
+
+    
   grunt.registerMultiTask('mxmlc', 'A Grunt task plugin to compile Adobe Flex/ActionScript', function() {
     var options = this.options({
         fontsManagers: ['flash.fonts.JREFontManager', 'flash.fonts.AFEFontManager'],
