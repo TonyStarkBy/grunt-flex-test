@@ -28,7 +28,7 @@ module.exports = function(grunt) {
             return grunt.log.error("src dir [" + options['src'] + "] is not exists or is not dir!");
         }
 
-        var done = this.async();
+        //var done = this.async();
 
         // stats && debug
         var respacksCount = 0, respacksCreated = 0, resourcesCount = 0, resourcesCreated = 0, resourcesIgnored = 0;
