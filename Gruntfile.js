@@ -90,6 +90,15 @@ module.exports = function(grunt) {
           'public/main.swf': settings.buildPath + 'main/src/Main.as'
         }
       }
+    },
+    
+	resourcejson: {
+        options: {
+          src: settings.srcPath,
+          dest: settings.destPath,
+          destMetaFile: settings.destMetaFile,
+          urlPath: settings.urlPath
+        }
     }
 
   });
@@ -103,4 +112,5 @@ module.exports = function(grunt) {
   grunt.registerTask('default', ['clean', 'copy', 'replace', 'mxmlc']);
   //grunt.registerTask('default', ['mxmlc:release']);
   //grunt.registerTask('default', ['clean', 'copy']);
+  // grunt.registerTask('default', ['resourcejson']);
 };
