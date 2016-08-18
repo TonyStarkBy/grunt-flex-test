@@ -96,6 +96,10 @@ module.exports = function(grunt) {
 
         // recurse scan
         grunt.file.recurse(options['src'], function callback(absPath, rootDir, subDir, fileName) {
+            // ignore root files
+            if (typeof subDir != 'string') {
+                return true;
+            }
             var md5 = crypto.createHash(options['hashAlgorithm']).update(fs.readFileSync(absPath)).digest('hex');
 
             // парсим имя и тип ресурса
@@ -103,9 +107,13 @@ module.exports = function(grunt) {
             if (fileData.length != 2) {
                 return grunt.log.error("[" + absPath + "] wrong format!");
             }
+
+            // разделяем на части путь
             var parts = subDir.split('/').map(function(value) {
                 return value.toLowerCase();
             });
+
+            // добавляем имя файла
             parts[parts.length] = fileData[0];
 
             // добавояем расширение для типов, для которых может быть коллизия имени
