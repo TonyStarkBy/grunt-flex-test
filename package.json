@@ -1,7 +1,7 @@
 {
   "name": "grunt-stark-mxmlc",
   "description": "A Grunt task plugin to compile Adobe Flex/ActionScript",
-  "version": "0.1.0",
+  "version": "0.1.4",
   "homepage": "https://github.com/TonyStarkBy/grunt-stark-mxmlc",
   "author": {
     "name": "Tony Stark",
@@ -26,10 +26,10 @@
   "scripts": {
     "test": "grunt test"
   },
-  "dependencies":{
+  "dependencies": {
     "js-yaml": "^3.5.3",
     "async": "^1.5.2"
-    },
+  },
   "devDependencies": {
     "grunt-text-replace": "^0.4.0",
     "grunt-contrib-copy": "^0.8.2",
