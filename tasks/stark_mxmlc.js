@@ -12,9 +12,70 @@ var childProcess = require('child_process');
 var async = require('async');
 var crypto = require('crypto');
 var fs = require("fs");
+var rsync = require("rsyncwrapper");
 
+function clone(obj) {
+    if (null == obj || "object" != typeof obj) {
+        return obj;
+    }
+    var copy = obj.constructor();
+    for (var attr in obj) {
+        if (obj.hasOwnProperty(attr)) {
+            copy[attr] = obj[attr];
+        }
+    }
+    return copy;
+}
 
 module.exports = function(grunt) {
+
+    grunt.task.registerMultiTask("rsync", "Performs rsync tasks.",function () {
+        var done = this.async();
+        var options = this.options({
+            'dest' : []
+        });
+
+        if (! options.onStdout ) {
+            options.onStdout = function (data) {
+                grunt.log.write(data.toString("utf8"));
+            };
+        }
+        if (typeof options['dest'] != 'object') {
+            return grunt.log.error("Invalid dest!");
+        }
+
+        try {
+            var destinations = options['dest'];
+
+            for (var i = 0; i < destinations.length; i++) {
+
+                // формируем опции запуска конкретно для этого вызова
+                var currentOptions = clone(options);
+                for (var param in destinations[i]) {
+                    currentOptions[param] = destinations[i][param];
+                }
+                grunt.verbose.writeln('Run rsync: ' + JSON.stringify(currentOptions));
+
+                // start rsync
+                rsync(currentOptions, function (error, stdout, stderr, cmd) {
+                    grunt.log.writeln("Shell command was: " + cmd);
+                    if (error) {
+                        grunt.log.error();
+                        grunt.log.writeln(error.toString().red);
+                        done(false);
+                    } else {
+                        grunt.log.ok();
+                        done(true);
+                    }
+                });
+            }
+
+        } catch (error) {
+            grunt.log.writeln("\n"+error.toString().red);
+            done(false);
+        }
+    });
+
 
     grunt.registerTask('resourcejson', 'A Grunt task plugin to build resources map', function() {
         var options = this.options({
@@ -169,12 +230,15 @@ module.exports = function(grunt) {
         grunt.log.writeln(stderr); // в stderr mxmlc выводит ошибки и варнинги!
 
         if (!error) {
-          grunt.log.writeln('File "' + f.dest + '" created.');
+            grunt.log.writeln('File "' + f.dest + '" created.');
+            done(true);
         } else {
-          grunt.log.writeln('Error: ' + stderr);
+            // Technique recommended on #grunt IRC channel. Tell Grunt asych function is finished.
+            // Pass error for logging; if operation completes successfully error will be null
+            grunt.log.writeln('Error: ' + stderr);
+            done(error);
         }
 
-        done(error); // Technique recommended on #grunt IRC channel. Tell Grunt asych function is finished. Pass error for logging; if operation completes successfully error will be null
       });
     });
   });
