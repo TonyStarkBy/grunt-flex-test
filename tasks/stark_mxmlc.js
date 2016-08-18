@@ -123,6 +123,8 @@ module.exports = function(grunt) {
 
             // формируем уникальное имя ресурса и имя респака
             var respackName = parts[0];
+            // удаляем имя респака
+            parts.shift();
             var resourceId = parts.join('_');
             var destinationFile = resourceId + "~" + md5 + "." + fileData[1];
 
