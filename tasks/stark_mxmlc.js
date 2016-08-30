@@ -262,7 +262,7 @@ var StarkTools = function(grunt, options) {
 
             // добавояем расширение для типов, для которых может быть коллизия имени
             if (fileData[1] == 'xml' || fileData[1] == 'swf') {
-                parts[parts.length] = parts[1];
+                parts[parts.length] = fileData[1];
             }
 
             // считаем md5
