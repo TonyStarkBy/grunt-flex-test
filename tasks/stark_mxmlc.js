@@ -567,6 +567,7 @@ module.exports = function(grunt) {
             filesJson: false
         });
 
+
         var files = false;
         if (! options['files']) {
             if (! options['filesJson']) {
@@ -578,11 +579,18 @@ module.exports = function(grunt) {
             files = options['files'];
         }
 
+        // если равен нулю - дальше не идем, потому что все сломается
+        if (Object.getOwnPropertyNames(files).length == 0) {
+            return 1;
+        }
+
+
         var done = this.async();
         var q = async.queue(stark.compile, options['maxConcurrency']);
         q.drain = done;
 
         for (var file in files) {
+
             if (! files.hasOwnProperty(file)) {
                 continue;
             }
