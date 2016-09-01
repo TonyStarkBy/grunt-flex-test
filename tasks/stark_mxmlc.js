@@ -430,7 +430,7 @@ var StarkTools = function(grunt) {
      * @private
      */
     this._fileNameParse = function(fileName, subDir) {
-        var fileData = fileName.split('.', 2);
+        var fileData = fileName.toLowerCase().split('.', 2);
         if (fileData.length != 2) {
             return false;
         }
