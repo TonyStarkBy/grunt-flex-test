@@ -170,7 +170,7 @@ var StarkTools = function(grunt) {
             var md5 = crypto.createHash(options['hashAlgorithm']).update(fs.readFileSync(absPath)).digest('hex');
 
             // имя ресурса
-            var resourceId = parts.join('_');
+            var resourceId = parts.join('_').toLowerCase();
             var destinationFile = resourceId + "~" + md5 + "." + fileData[1];
 
 
