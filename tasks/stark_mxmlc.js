@@ -47,7 +47,32 @@ var StarkTools = function(grunt) {
             'main' : {}
         };
 
+        var respacksCache = {};
         var respacksCount = 0;
+
+        // сканируем наличие респаков, чтобы удалить старые версии при генерации новых
+        if (grunt.file.exists(options['dest'])) {
+            grunt.file.recurse(options['dest'], function callback(absPath, rootDir, subDir, fileName) {
+                var fileData = fileName.split('.', 2);
+                if (fileData.length != 2) {
+                    return false;
+                }
+                if (fileData[1] != 'swf') {
+                    return fale;
+                }
+                var parts = fileData[0].split('~');
+                if (parts.length != 2) {
+                    return false;
+                }
+                var respackName = parts[0];
+                var respackHash = parts[1];
+
+                if (typeof respacksCache[respackName] == 'undefined') {
+                    respacksCache[respackName] = {};
+                }
+                respacksCache[respackName][respackHash] = absPath;
+            });
+        }
 
         // функция обработки
         var proccess = function callback(absPath, rootDir, subDir, fileName) {
@@ -75,8 +100,20 @@ var StarkTools = function(grunt) {
 
             // копиируем только если файла нет
             if (! grunt.file.exists(destination + newFileName)) {
-                 grunt.file.copy(absPath, destination + newFileName);
-                 grunt.log.oklns(absPath + ' >>> ' + newFileName);
+
+                // вначале удаляем старые
+                if (typeof respacksCache[fileData[0]] != 'undefined') {
+                    for (var respackHash in respacksCache[fileData[0]]) {
+                        var oldRespackPath = respacksCache[fileData[0]][respackHash];
+                        grunt.log.oklns("Delete old : " + oldRespackPath);
+                        grunt.file.delete(oldRespackPath);
+                    }
+                }
+
+                // копируем новый
+                grunt.file.copy(absPath, destination + newFileName);
+                grunt.log.oklns("Copy new: " + newFileName);
+
             } else {
                  grunt.log.oklns('Already exists.');
             }
