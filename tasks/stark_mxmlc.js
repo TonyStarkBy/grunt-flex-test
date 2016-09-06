@@ -58,7 +58,7 @@ var StarkTools = function(grunt) {
                     return false;
                 }
                 if (fileData[1] != 'swf') {
-                    return fale;
+                    return false;
                 }
                 var parts = fileData[0].split('~');
                 if (parts.length != 2) {
